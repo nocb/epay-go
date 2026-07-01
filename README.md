@@ -69,12 +69,8 @@ docker compose up -d --build
 - `DEFAULT_ADMIN_PASSWORD`
 - `SITE_ADDRESS`
 - `ACME_EMAIL`
-- `ALIPAY_APP_ID`
-- `ALIPAY_PRIVATE_KEY`
-- `ALIPAY_PUBLIC_KEY`
-- `WECHAT_APP_ID`
-- `WECHAT_MCH_ID`
-- `WECHAT_API_KEY`
+
+> ⚠️ 支付渠道（支付宝、微信、汇付天下）的 AppID / 商户号 / 密钥等**不在 `.env` 中配置**，而是登录管理后台后在「通道管理」里按通道填写、保存到数据库。`.env.example` 中残留的 `ALIPAY_*` / `WECHAT_*` 变量后端已不再读取，可忽略。
 
 系统首次启动且数据库中没有管理员时，会使用 `DEFAULT_ADMIN_USERNAME` 和 `DEFAULT_ADMIN_PASSWORD` 初始化默认管理员。
 
@@ -101,6 +97,12 @@ docker compose up -d --build
 - `deploy/nginx/host.prod.conf.example`
 
 ## 支付参数说明
+
+已支持的支付通道（均在管理后台「通道管理」中配置密钥并启用）：
+
+- **支付宝官方**（plugin: `alipay`）
+- **微信官方**（plugin: `wechat`）
+- **汇付天下 / 斗拱聚合支付**（plugin: `huifu`）：一个商户号可承接微信或支付宝，由通道配置的「承接方式」区分；当前支持扫码，微信承接方式下另支持 JSAPI / H5。对外下单方式与官方通道一致，具体走官方还是汇付，由后台通道的启用状态与排序决定，对商户透明。
 
 支付通道和支付场景是分开的：
 
@@ -146,6 +148,12 @@ docker compose up -d --build
 
 ```env
 GOPROXY=https://goproxy.cn,direct
+NPM_REGISTRY=https://registry.npmmirror.com
 ```
+
+- `GOPROXY`：加速后端 Go 依赖下载。
+- `NPM_REGISTRY`：加速前端 npm 依赖下载，前端镜像默认已使用该阿里云镜像。
+
+> 注意：`web/package-lock.json` 里的依赖下载地址（`resolved`）会被写死，若该文件在配了内网镜像（如腾讯云内网 `mirrors.tencentyun.com`）的机器上重新生成，会导致其他环境 `npm ci` 因地址不可达而失败。重新生成锁文件时请确保使用公网可达的镜像。
 
 
