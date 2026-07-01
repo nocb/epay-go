@@ -3,26 +3,26 @@ package payment
 
 // PluginConfigField 配置字段定义
 type PluginConfigField struct {
-	Key         string            `json:"key"`          // 字段键名
-	Name        string            `json:"name"`         // 显示名称
-	Type        string            `json:"type"`         // 类型: input/textarea/select/checkbox
-	Required    bool              `json:"required"`     // 是否必填
-	Placeholder string            `json:"placeholder"`  // 占位符
-	Note        string            `json:"note"`         // 说明文字
-	Options     map[string]string `json:"options"`      // 下拉选项（type=select时使用）
+	Key         string            `json:"key"`         // 字段键名
+	Name        string            `json:"name"`        // 显示名称
+	Type        string            `json:"type"`        // 类型: input/textarea/select/checkbox
+	Required    bool              `json:"required"`    // 是否必填
+	Placeholder string            `json:"placeholder"` // 占位符
+	Note        string            `json:"note"`        // 说明文字
+	Options     map[string]string `json:"options"`     // 下拉选项（type=select时使用）
 }
 
 // PluginConfig 插件配置信息
 type PluginConfig struct {
-	Name       string              `json:"name"`        // 插件英文名
-	ShowName   string              `json:"show_name"`   // 显示名称
-	Author     string              `json:"author"`      // 作者
-	Link       string              `json:"link"`        // 官方链接
-	Inputs     []PluginConfigField `json:"inputs"`      // 配置字段
-	PayTypes   []PayTypeOption     `json:"pay_types"`   // 支持的支付接口
-	BindWxmp   bool                `json:"bind_wxmp"`   // 是否绑定微信公众号
-	BindWxa    bool                `json:"bind_wxa"`    // 是否绑定微信小程序
-	Note       string              `json:"note"`        // 配置说明
+	Name     string              `json:"name"`      // 插件英文名
+	ShowName string              `json:"show_name"` // 显示名称
+	Author   string              `json:"author"`    // 作者
+	Link     string              `json:"link"`      // 官方链接
+	Inputs   []PluginConfigField `json:"inputs"`    // 配置字段
+	PayTypes []PayTypeOption     `json:"pay_types"` // 支持的支付接口
+	BindWxmp bool                `json:"bind_wxmp"` // 是否绑定微信公众号
+	BindWxa  bool                `json:"bind_wxa"`  // 是否绑定微信小程序
+	Note     string              `json:"note"`      // 配置说明
 }
 
 // PayTypeOption 支付接口选项
@@ -36,6 +36,7 @@ func GetPluginConfigs() map[string]PluginConfig {
 	return map[string]PluginConfig{
 		"alipay": GetAlipayConfig(),
 		"wechat": GetWechatConfig(),
+		"huifu":  GetHuifuConfig(),
 	}
 }
 
@@ -174,5 +175,71 @@ func GetWechatConfig() PluginConfig {
 		BindWxmp: true,
 		BindWxa:  true,
 		Note:     "当前后端使用微信支付 V3：必须配置 APIv3密钥、商户证书序列号、商户私钥内容。",
+	}
+}
+
+// GetHuifuConfig 汇付天下（斗拱平台）配置模板
+func GetHuifuConfig() PluginConfig {
+	return PluginConfig{
+		Name:     "huifu",
+		ShowName: "汇付天下（斗拱平台）",
+		Author:   "汇付天下",
+		Link:     "https://paas.huifu.com",
+		Inputs: []PluginConfigField{
+			{
+				Key:         "sys_id",
+				Name:        "系统接入号",
+				Type:        "input",
+				Required:    true,
+				Placeholder: "请输入汇付分配的系统接入号(system_id)",
+			},
+			{
+				Key:         "product_id",
+				Name:        "产品号",
+				Type:        "input",
+				Required:    true,
+				Placeholder: "请输入产品号(product_id)",
+			},
+			{
+				Key:         "huifu_id",
+				Name:        "商户号",
+				Type:        "input",
+				Required:    true,
+				Placeholder: "请输入汇付商户号(huifu_id)",
+			},
+			{
+				Key:      "channel_family",
+				Name:     "承接方式",
+				Type:     "select",
+				Required: true,
+				Options: map[string]string{
+					"wechat": "微信",
+					"alipay": "支付宝",
+				},
+				Note: "汇付一个商户号可同时承接微信/支付宝，本插件按此项决定内部走哪条通道；如两种都要，请分别新建两个汇付通道。",
+			},
+			{
+				Key:         "rsa_merchant_private_key",
+				Name:        "商户私钥",
+				Type:        "textarea",
+				Required:    true,
+				Placeholder: "请粘贴商户RSA私钥(PKCS8格式) PEM 内容",
+				Note:        "用于对请求参数进行 RSA-SHA256 签名",
+			},
+			{
+				Key:         "rsa_huifu_public_key",
+				Name:        "汇付公钥",
+				Type:        "textarea",
+				Required:    true,
+				Placeholder: "请粘贴汇付平台公钥 PEM 内容",
+				Note:        "用于验证汇付返回及异步通知的签名",
+			},
+		},
+		PayTypes: []PayTypeOption{
+			{Code: "scan", Name: "扫码支付"},
+			{Code: "jsapi", Name: "JS调起支付（仅微信承接）"},
+			{Code: "h5", Name: "H5支付（仅微信承接）"},
+		},
+		Note: "支付宝承接方式下暂只支持扫码支付；JSAPI/H5 目前仅微信承接方式支持。",
 	}
 }
