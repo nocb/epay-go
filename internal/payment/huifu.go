@@ -352,7 +352,7 @@ func (h *HuifuAdapter) Refund(ctx context.Context, req *RefundRequest) (*RefundR
 		"req_date":       time.Now().Format("20060102"),
 		"req_seq_id":     req.RefundNo,
 		"huifu_id":       h.config.HuifuID,
-		"ord_amt":        req.TotalAmount.StringFixed(2),
+		"ord_amt":        req.Amount.StringFixed(2),
 		"org_req_date":   orgReqDate,
 		"org_req_seq_id": req.TradeNo,
 		"remark":         req.RefundDesc,
