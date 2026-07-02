@@ -31,7 +31,6 @@ type HuifuConfig struct {
 	SysID              string `json:"sys_id"`                   // 系统接入号
 	ProductID          string `json:"product_id"`               // 产品号
 	HuifuID            string `json:"huifu_id"`                 // 商户号
-	ChannelFamily      string `json:"channel_family"`           // 承接方式: wechat / alipay
 	MerchantPrivateKey string `json:"rsa_merchant_private_key"` // 商户私钥(PKCS8)
 	HuifuPublicKey     string `json:"rsa_huifu_public_key"`     // 汇付公钥
 }
@@ -39,13 +38,23 @@ type HuifuConfig struct {
 // HuifuAdapter 汇付天下适配器
 type HuifuAdapter struct {
 	config     *HuifuConfig
+	family     string // "wechat" or "alipay"
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
 	httpClient *http.Client
 }
 
-// NewHuifuAdapter 创建汇付适配器
-func NewHuifuAdapter(configJSON json.RawMessage) (PaymentAdapter, error) {
+// NewHuifuWechatAdapter 创建汇付微信适配器
+func NewHuifuWechatAdapter(configJSON json.RawMessage) (PaymentAdapter, error) {
+	return newHuifuAdapter(configJSON, "wechat")
+}
+
+// NewHuifuAlipayAdapter 创建汇付支付宝适配器
+func NewHuifuAlipayAdapter(configJSON json.RawMessage) (PaymentAdapter, error) {
+	return newHuifuAdapter(configJSON, "alipay")
+}
+
+func newHuifuAdapter(configJSON json.RawMessage, family string) (PaymentAdapter, error) {
 	var cfg HuifuConfig
 	if err := json.Unmarshal(configJSON, &cfg); err != nil {
 		return nil, err
@@ -62,6 +71,7 @@ func NewHuifuAdapter(configJSON json.RawMessage) (PaymentAdapter, error) {
 
 	return &HuifuAdapter{
 		config:     &cfg,
+		family:     family,
 		privateKey: priv,
 		publicKey:  pub,
 		httpClient: &http.Client{Timeout: 15 * time.Second},
@@ -193,7 +203,7 @@ func (h huifuDataHeader) isSuccess() bool {
 
 // resolveTradeType 按承接方式(channel_family)+支付方式解析汇付的 trade_type
 func (h *HuifuAdapter) resolveTradeType(payMethod string) (string, error) {
-	isWechat := h.config.ChannelFamily == "wechat"
+	isWechat := h.family == "wechat"
 	switch payMethod {
 	case "scan", "qrcode", "native", "precreate", "":
 		if isWechat {
@@ -421,5 +431,6 @@ func (h *HuifuAdapter) NotifySuccess() string {
 }
 
 func init() {
-	Register("huifu", NewHuifuAdapter)
+	Register("hf-wxpay", NewHuifuWechatAdapter)
+	Register("hf-alipay", NewHuifuAlipayAdapter)
 }

@@ -4,7 +4,7 @@ export interface PaymentOption {
   payType: string
   payMethod?: string
   mode: 'qrcode' | 'redirect' | 'jsapi'
-  provider: 'wechat' | 'alipay'
+  provider: 'wechat' | 'alipay' | 'huifu_wechat' | 'huifu_alipay'
 }
 
 const ALL_OPTIONS: PaymentOption[] = [
@@ -14,10 +14,22 @@ const ALL_OPTIONS: PaymentOption[] = [
   { label: 'ALIPAY_SCAN', value: 'ALIPAY_SCAN', payType: 'alipay', payMethod: 'scan', mode: 'qrcode', provider: 'alipay' },
   { label: 'ALIPAY_H5', value: 'ALIPAY_H5', payType: 'alipay', payMethod: 'h5', mode: 'redirect', provider: 'alipay' },
   { label: 'ALIPAY_WEB', value: 'ALIPAY_WEB', payType: 'alipay', payMethod: 'web', mode: 'redirect', provider: 'alipay' },
+  // 汇付天下（微信）
+  { label: '扫码支付', value: 'HUIFU_WX_SCAN', payType: 'scan', payMethod: 'scan', mode: 'qrcode', provider: 'huifu_wechat' },
+  { label: 'JSAPI支付', value: 'HUIFU_WX_JSAPI', payType: 'jsapi', payMethod: 'jsapi', mode: 'jsapi', provider: 'huifu_wechat' },
+  { label: 'H5支付', value: 'HUIFU_WX_H5', payType: 'h5', payMethod: 'h5', mode: 'redirect', provider: 'huifu_wechat' },
+  // 汇付天下（支付宝）
+  { label: '扫码支付', value: 'HUIFU_ALI_SCAN', payType: 'scan', payMethod: 'scan', mode: 'qrcode', provider: 'huifu_alipay' },
 ]
 
 export function getPaymentOptionsByPlugin(plugin: string): PaymentOption[] {
   const normalized = plugin.toLowerCase()
+  if (normalized === 'hf-wxpay') {
+    return ALL_OPTIONS.filter(option => option.provider === 'huifu_wechat')
+  }
+  if (normalized === 'hf-alipay') {
+    return ALL_OPTIONS.filter(option => option.provider === 'huifu_alipay')
+  }
   if (normalized.includes('wechat') || normalized.includes('wxpay')) {
     return ALL_OPTIONS.filter(option => option.provider === 'wechat')
   }
@@ -27,7 +39,7 @@ export function getPaymentOptionsByPlugin(plugin: string): PaymentOption[] {
   return []
 }
 
-export function getPaymentOptionsByProvider(provider: 'wechat' | 'alipay') {
+export function getPaymentOptionsByProvider(provider: 'wechat' | 'alipay' | 'huifu_wechat' | 'huifu_alipay') {
   return ALL_OPTIONS.filter(option => option.provider === provider)
 }
 

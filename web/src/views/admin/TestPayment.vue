@@ -183,6 +183,7 @@ const getPaymentAppName = () => {
   const plugin = selectedChannel.value.plugin.toLowerCase()
   if (plugin.includes('alipay')) return '支付宝'
   if (plugin.includes('wechat') || plugin.includes('wxpay')) return '微信'
+  if (plugin.includes('huifu')) return '支付宝/微信'
   return '支付应用'
 }
 

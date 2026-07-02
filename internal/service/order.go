@@ -66,7 +66,7 @@ func (s *OrderService) Create(ctx context.Context, req *CreateOrderRequest) (*Cr
 	}
 
 	// 获取可用通道
-	channel, err := s.channelRepo.GetAvailableByPayType(req.PayType)
+	channel, err := s.channelRepo.GetAvailableByPayTypeAndMethod(req.PayType, req.PayMethod)
 	if err != nil {
 		return nil, errors.New("暂无可用的支付通道")
 	}
