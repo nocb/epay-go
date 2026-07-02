@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -187,7 +188,7 @@ type huifuDataHeader struct {
 }
 
 func (h huifuDataHeader) isSuccess() bool {
-	return h.RespCode == "00000000"
+	return h.RespCode == "00000000" || h.RespCode == "00000100"
 }
 
 // resolveTradeType 按承接方式(channel_family)+支付方式解析汇付的 trade_type
@@ -249,6 +250,7 @@ func (h *HuifuAdapter) CreateOrder(ctx context.Context, req *CreateOrderRequest)
 	if err := h.doRequest(ctx, "/v2/trade/payment/jspay", data, &result); err != nil {
 		return nil, err
 	}
+	log.Printf("[HUIFU DEBUG] resp_code=%s resp_desc=%s qr_code=%s", result.RespCode, result.RespDesc, result.QrCode)
 	if !result.isSuccess() {
 		return nil, errors.New(result.RespDesc)
 	}

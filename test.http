@@ -1,0 +1,52 @@
+### 斗拱 (汇付天下) 支付测试脚本
+### 需配合 VS Code 的 REST Client 插件或类似工具使用
+
+@baseUrl = http://10.0.7.150
+@pid = 1000
+@apiKey = your_api_key
+@outTradeNo = {{$timestamp}}
+@money = 1.00
+
+### 1. 创建订单 (商户标准接口)
+# 对应 epay-go 标准接口，需提供签名 sign (由参数+ApiKey做MD5，本例以占位符表示)
+POST {{baseUrl}}/api/pay/create
+Content-Type: application/x-www-form-urlencoded
+
+pid={{pid}}
+&type=wxpay
+&out_trade_no={{outTradeNo}}
+&notify_url=http://example.com/notify
+&return_url=http://example.com/return
+&name=TestOrder
+&money={{money}}
+&sign_type=MD5
+&sign=此处填入MD5计算后的签名值
+&pay_method=qrcode
+
+
+### 2. 通过管理后台测试支付 (无须计算复杂签名，适合联调通道配置)
+# 如果你需要测试指定支付通道(比如配置了汇付天下插件的通道)，可以通过后台的测试接口发起
+# 注意：你需要先获取 Admin JWT Token
+
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VybmFtZSI6ImVwYXlfYWRtaW4iLCJ0b2tlbl90eXBlIjoiYWRtaW4iLCJpc3MiOiJlcGF5LWdvIiwiZXhwIjoxNzgzNTg5MDc5LCJpYXQiOjE3ODI5ODQyNzl9.KreS01W2qkfzSUDL0shvqT-z6eQMhFNOX61IQsDVHfY
+@channelId = 2
+POST {{baseUrl}}/api/admin/test-payment
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+    "channel_id": {{channelId}},
+    "amount": "{{money}}",
+    "pay_type": "scan"
+}
+
+
+### 3. 模拟异步通知 (斗拱回调测试)
+# 汇付的异步通知是由外网打入内网，如果在本地开发，可以通过模拟构造 POST 请求触发。
+# 斗拱回调通常会将业务数据放在 resp_data 中，并提供签名 sign。
+
+POST {{baseUrl}}/api/pay/notify/huifu
+Content-Type: application/x-www-form-urlencoded
+
+resp_data={"req_seq_id":"{{outTradeNo}}","hf_seq_id":"HUIFU123456789","trans_amt":"{{money}}","trans_stat":"S","resp_code":"00000000"}
+&sign=模拟的Base64签名数据
