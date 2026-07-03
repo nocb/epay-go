@@ -162,6 +162,8 @@ func (h *HuifuAdapter) doRequest(ctx context.Context, path string, data map[stri
 		return err
 	}
 
+	log.Printf("[HUIFU API REQUEST] path: %s, data: %s", path, string(dataJSON))
+
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, huifuAPIHost+path, bytes.NewReader(body))
 	if err != nil {
 		return err
@@ -178,6 +180,8 @@ func (h *HuifuAdapter) doRequest(ctx context.Context, path string, data map[stri
 	if err != nil {
 		return err
 	}
+	
+	log.Printf("[HUIFU API RESPONSE] path: %s, response: %s", path, string(respBody))
 
 	var envResp struct {
 		Data json.RawMessage `json:"data"`
@@ -390,6 +394,8 @@ func (h *HuifuAdapter) ParseNotify(ctx context.Context, r *http.Request) (*Notif
 	if err != nil {
 		return nil, err
 	}
+
+	log.Printf("[HUIFU API NOTIFY] raw_body: %s", string(body))
 
 	respData := values.Get("resp_data")
 	sign := values.Get("sign")
