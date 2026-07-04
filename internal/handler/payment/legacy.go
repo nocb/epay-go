@@ -2,8 +2,10 @@ package payment
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
+	"log"
 	"net/url"
 	"strconv"
 	"strings"
@@ -57,11 +59,18 @@ func LegacySubmit(c *gin.Context) {
 		return
 	}
 
+	reqJSON, _ := json.Marshal(req)
+	log.Printf("[LegacySubmit] Incoming Request: %s\n", string(reqJSON))
+
 	orderResp, _, err := createLegacyOrder(c, &req)
 	if err != nil {
+		log.Printf("[LegacySubmit] Error creating order: %v\n", err)
 		legacyHTML(c, err.Error())
 		return
 	}
+
+	respJSON, _ := json.Marshal(orderResp)
+	log.Printf("[LegacySubmit] Outgoing Response: %s\n", string(respJSON))
 
 	if orderResp.PayURL != "" {
 		if orderResp.PayType == "qrcode" {

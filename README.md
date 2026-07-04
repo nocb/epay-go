@@ -157,3 +157,19 @@ NPM_REGISTRY=https://registry.npmmirror.com
 > 注意：`web/package-lock.json` 里的依赖下载地址（`resolved`）会被写死，若该文件在配了内网镜像（如腾讯云内网 `mirrors.tencentyun.com`）的机器上重新生成，会导致其他环境 `npm ci` 因地址不可达而失败。重新生成锁文件时请确保使用公网可达的镜像。
 
 
+
+## 代码更新流程
+1. 拉取最新代码（如果使用 git）
+git pull
+
+2. 重新构建后端和前端
+docker compose build backend frontend
+
+3. 更新容器
+docker compose up -d
+
+4. 查看运行状态
+docker compose ps
+
+5. 查看日志确认正常
+docker compose logs -f backend
