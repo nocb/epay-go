@@ -406,6 +406,13 @@ func legacyQRCodePage(c *gin.Context, req *LegacyCreateOrderRequest, orderResp *
 		returnSection = fmt.Sprintf(`<a class="action secondary" href="%s">返回商户页面</a>`, escapedReturnURL)
 	}
 
+	payName := "微信"
+	scanApp := "微信扫一扫"
+	if req.Type == "alipay" {
+		payName = "支付宝"
+		scanApp = "支付宝扫一扫"
+	}
+
 	html := fmt.Sprintf(`<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -610,8 +617,8 @@ func legacyQRCodePage(c *gin.Context, req *LegacyCreateOrderRequest, orderResp *
     <section class="hero">
       <div>
         <div class="badge">安全支付 · 扫码付款</div>
-        <h1 class="title">请使用微信扫码完成支付</h1>
-        <p class="subtitle">订单已经创建成功，请使用微信扫一扫扫描右侧二维码完成付款。支付成功后，系统会自动通知商户并跳转回业务页面。</p>
+        <h1 class="title">请使用%s扫码完成支付</h1>
+        <p class="subtitle">订单已经创建成功，请使用%s扫描右侧二维码完成付款。支付成功后，系统会自动通知商户并跳转回业务页面。</p>
         <div class="summary">
           <div class="summary-item">
             <div class="summary-label">支付金额</div>
@@ -685,7 +692,7 @@ func legacyQRCodePage(c *gin.Context, req *LegacyCreateOrderRequest, orderResp *
     window.setInterval(checkPaymentStatus, 3000);
   </script>
 </body>
-</html>`, escapedAmount, escapedName, escapedTradeNo, escapedOutTradeNo, qrImageURL, returnSection, escapedPayURLHTML, escapedPayURL, statusAPIURL, escapedReturnURLJS)
+</html>`, payName, scanApp, escapedAmount, escapedName, escapedTradeNo, escapedOutTradeNo, qrImageURL, returnSection, escapedPayURLHTML, escapedPayURL, statusAPIURL, escapedReturnURLJS)
 
 	c.Header("Content-Type", "text/html; charset=utf-8")
 	c.String(200, html)
