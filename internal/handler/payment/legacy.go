@@ -406,7 +406,7 @@ func legacyQRCodePage(c *gin.Context, req *LegacyCreateOrderRequest, orderResp *
 	escapedOutTradeNo := template.HTMLEscapeString(req.OutTradeNo)
 	escapedPayURLHTML := template.HTMLEscapeString(orderResp.PayURL)
 	escapedPayURL := template.JSEscapeString(orderResp.PayURL)
-	statusAPIURL := template.JSEscapeString(getPaymentBaseURL(c) + "/api/pay/status/" + orderResp.TradeNo)
+	statusAPIURL := template.JSEscapeString("/api/pay/status/" + orderResp.TradeNo)
 	escapedReturnURL := template.HTMLEscapeString(req.ReturnURL)
 	escapedReturnURLJS := template.JSEscapeString(req.ReturnURL)
 	qrImageURL := template.HTMLEscapeString("https://api.qrserver.com/v1/create-qr-code/?size=232x232&data=" + url.QueryEscape(orderResp.PayURL))
@@ -677,6 +677,11 @@ func legacyQRCodePage(c *gin.Context, req *LegacyCreateOrderRequest, orderResp *
           headers: { 'Accept': 'application/json' },
           cache: 'no-store'
         });
+        if (!response.ok) {
+          console.warn('[PayStatus] HTTP', response.status, response.statusText);
+          statusEl.textContent = '等待支付完成';
+          return;
+        }
         const result = await response.json();
         if (result && result.code === 0 && result.data && result.data.paid) {
           redirected = true;
@@ -693,7 +698,8 @@ func legacyQRCodePage(c *gin.Context, req *LegacyCreateOrderRequest, orderResp *
         }
         statusEl.textContent = '等待支付完成';
       } catch (error) {
-        statusEl.textContent = '支付状态检查中...';
+        console.error('[PayStatus] Error:', error, 'statusUrl:', statusUrl);
+        statusEl.textContent = '等待支付完成';
       }
     }
 
